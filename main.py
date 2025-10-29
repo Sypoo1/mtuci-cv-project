@@ -20,6 +20,7 @@ for car in cars:
 
     displaly_image(img)
 
+
     detections = car_detection_model(img)[0]
     for detection in detections.boxes.data.tolist():
         x1, y1, x2, y2, score, class_id = detection
@@ -46,7 +47,7 @@ for car in cars:
 
             #     print(text)
             detection = pytesseract.image_to_string(car_crop_gray, lang='rus')
-            print(f'\ndetection:\npytesseract: {detection}')
+            print(f'npytesseract: {detection}')
 
     # break
 
