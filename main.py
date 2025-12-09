@@ -10,7 +10,6 @@ warnings.filterwarnings('ignore')
 
 
 cars = ['data/1.jpg', 'data/2.jpg', 'data/3.jpg']
-vehicles_class_ids = [2, 3, 5, 7]
 car_detection_model = YOLO('tests/best1.pt')
 reader = easyocr.Reader(['ru'], gpu=False)
 

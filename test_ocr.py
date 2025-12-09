@@ -1,44 +1,34 @@
-import easyocr
-import cv2 as cv
-from utils import displaly_image
-import warnings
-import pytesseract
-from PIL import Image
+import re
+
+import cv2
+from paddleocr import PaddleOCR
 
 
-warnings.filterwarnings('ignore') 
+# Preprocess cropped plate image
+def preprocess(img_path):
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    img = cv2.fastNlMeansDenoising(img, h=8)
+    img = cv2.equalizeHist(img)
+    cv2.imwrite("plate_pre.png", img)
+    return "plate_pre.png"
 
 
+ocr = PaddleOCR(
+    lang="ru",
+    # use_angle_cls=False,
+    use_doc_orientation_classify=False,
+    use_doc_unwarping=False,
+    use_textline_orientation=False,
+)
 
-
-# cars = ['data/1.jpg', 'data/2.jpg', 'data/3.jpg']
-reader = easyocr.Reader(['ru'], gpu=False)
-
-img_path = 'data/plate_test.png'
-
-
-test = cv.imread(img_path)
-
-plate_crop_gray = cv.cvtColor(test, cv.COLOR_BGR2GRAY)
-
-displaly_image(plate_crop_gray)
-
-_, plate_crop_thresh = cv.threshold(plate_crop_gray, 64, 255, cv.THRESH_BINARY_INV)
-
-
-detections = reader.readtext(plate_crop_gray)
-
-for detection in detections:
-    bbox, text, score = detection
-
-    text = text.upper().replace(' ', '')
-
-    print(f'\neasyocr: {text}')
-
-
-# image = Image.open('image.png')
-
-text = pytesseract.image_to_string(plate_crop_gray, lang='rus')
-text = text.upper().replace(' ', '')
-
-print(f'pytesseract: {text}')
+# img_path = preprocess("data/plate_test.png")
+# img_path = "data/plate_test.png"
+img_path = "ocr_test/A001BO92.png"
+img_path = "ocr_test/A001HY116.png"
+result = ocr.ocr(img_path)
+print(result)
+for res in result:
+    res.print()
+    res.save_to_img("output2")
+    res.save_to_json("output2")

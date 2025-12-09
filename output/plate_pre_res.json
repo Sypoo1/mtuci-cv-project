@@ -1,5 +1,5 @@
 {
-    "input_path": "data/plate_test.png",
+    "input_path": "plate_pre.png",
     "page_index": null,
     "model_settings": {
         "use_doc_preprocessor": false,
@@ -8,20 +8,20 @@
     "dt_polys": [
         [
             [
-                11,
-                9
+                22,
+                19
             ],
             [
-                128,
-                13
+                195,
+                27
             ],
             [
-                127,
-                41
+                193,
+                78
             ],
             [
-                10,
-                36
+                20,
+                70
             ]
         ]
     ],
@@ -40,37 +40,37 @@
     "text_rec_score_thresh": 0.0,
     "return_word_box": false,
     "rec_texts": [
-        "M136YE24"
+        "M136YE"
     ],
     "rec_scores": [
-        0.8208693861961365
+        0.8942453265190125
     ],
     "rec_polys": [
         [
             [
-                11,
-                9
+                22,
+                19
             ],
             [
-                128,
-                13
+                195,
+                27
             ],
             [
-                127,
-                41
+                193,
+                78
             ],
             [
-                10,
-                36
+                20,
+                70
             ]
         ]
     ],
     "rec_boxes": [
         [
-            10,
-            9,
-            128,
-            41
+            20,
+            19,
+            195,
+            78
         ]
     ]
 }

@@ -1,5 +1,5 @@
 {
-    "input_path": "data/plate_test.png",
+    "input_path": "ocr_test/A001HY116.png",
     "page_index": null,
     "model_settings": {
         "use_doc_preprocessor": false,
@@ -8,20 +8,20 @@
     "dt_polys": [
         [
             [
-                11,
-                9
+                15,
+                8
             ],
             [
-                128,
-                13
+                268,
+                10
             ],
             [
-                127,
-                41
+                268,
+                55
             ],
             [
-                10,
-                36
+                14,
+                53
             ]
         ]
     ],
@@ -40,37 +40,37 @@
     "text_rec_score_thresh": 0.0,
     "return_word_box": false,
     "rec_texts": [
-        "M136YE24"
+        "A001HY116"
     ],
     "rec_scores": [
-        0.8208693861961365
+        0.9739025831222534
     ],
     "rec_polys": [
         [
             [
-                11,
-                9
+                15,
+                8
             ],
             [
-                128,
-                13
+                268,
+                10
             ],
             [
-                127,
-                41
+                268,
+                55
             ],
             [
-                10,
-                36
+                14,
+                53
             ]
         ]
     ],
     "rec_boxes": [
         [
-            10,
-            9,
-            128,
-            41
+            14,
+            8,
+            268,
+            55
         ]
     ]
 }
