@@ -3,73 +3,77 @@ import warnings
 
 import cv2 as cv
 import numpy as np
-from paddleocr import PaddleOCR
+from paddleocr import TextRecognition
 from PIL import Image
 from ultralytics import YOLO
 
-from utils import display_image
+from utils import display_image, normalize_plate
 
 warnings.filterwarnings("ignore")
+os.environ["DISABLE_MODEL_SOURCE_CHECK"] = "True"
+
+
 
 
 def main(folder_path: str):
-
-    car_images = list(map(lambda x: os.path.join(folder_path, x), os.listdir(folder_path)))
+    car_images = list(
+        map(lambda x: os.path.join(folder_path, x), os.listdir(folder_path))
+    )
 
     plate_detection_model = YOLO("tests/best1.pt")
 
-    ocr = PaddleOCR(
-        use_doc_orientation_classify=False,
-        use_doc_unwarping=False,
-        use_textline_orientation=False,
-        lang="ru",
-    )
-
+    model = TextRecognition(model_name="PP-OCRv5_server_rec")
 
     for car_image in car_images:
         file_name = os.path.basename(car_image)
         img = cv.imread(car_image)
 
-        # displaly_image(img)
-
         detections = plate_detection_model(img)[0]
+
         for idx, detection in enumerate(detections.boxes.data.tolist()):
             x1, y1, x2, y2, score, class_id = detection
 
             if class_id == 0:
-                plate_crop = img[int(y1) : int(y2), int(x1) : int(x2), :]
+                plate_crop = img[int(y1) : int(y2), int(x1) : int(x2)]
 
-                processed_plate_crop = preprocess(plate_crop)
+                # plate_crop = preprocess(plate_crop)
 
-                plate_file_path = f'tmp/{idx}_{file_name}'
+                plate_file_path = f"tmp/{idx}_{file_name}"
+                cv.imwrite(plate_file_path, plate_crop)
 
-                input_img = plate_crop
+                # OCR
+                result = model.predict(plate_file_path)
 
-                cv.imwrite(plate_file_path, input_img)
-
-                # displaly_image(plate_crop)
-                # cv.imwrite(f"tmp/crop_{file_name}", plate_crop)
-
-
-
-                result = ocr.predict(plate_file_path)
+                predicted_text = ""
                 for res in result:
-                    # res.print()
                     res.save_to_img("output")
-                    # res.save_to_json("output")
-
-                filename_without_extension, extension = os.path.splitext(file_name)
-
-                output_file_path = f'output/{idx}_{filename_without_extension}_ocr_res_img{extension}'
-                # print(output_file_path)
-
-                output = cv.imread(output_file_path)
-                display_image(output)
+                    res.save_to_json("output")
+                    predicted_text += res["rec_text"]
 
 
+                predicted_text = normalize_plate(predicted_text)
 
-        # break
 
+                cv.rectangle(
+                    img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2
+                )
+
+                if predicted_text:
+                    cv.putText(
+                        img,
+                        predicted_text,
+                        (int(x1), int(y1) - 10),
+                        cv.FONT_HERSHEY_SIMPLEX,
+                        0.9,
+                        (0, 255, 0),
+                        2,
+                        cv.LINE_AA,
+                    )
+
+                # показываем обновлённое изображение
+                display_image(img)
+                plate_file_path_done = f"output/{idx}_{file_name}"
+                cv.imwrite(plate_file_path_done, img)
 
 
 def set_image_dpi(img_array):
