@@ -7,7 +7,7 @@ from paddleocr import PaddleOCR
 from PIL import Image
 from ultralytics import YOLO
 
-from utils import displaly_image
+from utils import display_image
 
 warnings.filterwarnings("ignore")
 
@@ -64,7 +64,7 @@ def main(folder_path: str):
                 # print(output_file_path)
 
                 output = cv.imread(output_file_path)
-                displaly_image(output)
+                display_image(output)
 
 
 
@@ -95,5 +95,5 @@ def preprocess(img):
 
 
 if __name__ == "__main__":
-    # main("data")
-    main("custom_data")
+    main("data")
+    # main("custom_data")
