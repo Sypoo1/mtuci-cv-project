@@ -1,66 +1,99 @@
-import easyocr
-from ultralytics import YOLO
-import cv2 as cv
-from utils import displaly_image
+import os
 import warnings
-import pytesseract
 
+import cv2 as cv
+import numpy as np
 from paddleocr import PaddleOCR
-warnings.filterwarnings('ignore')
+from PIL import Image
+from ultralytics import YOLO
+
+from utils import displaly_image
+
+warnings.filterwarnings("ignore")
 
 
-cars = ['data/1.jpg', 'data/2.jpg', 'data/3.jpg']
-car_detection_model = YOLO('tests/best1.pt')
-reader = easyocr.Reader(['ru'], gpu=False)
+def main(folder_path: str):
 
-ocr = PaddleOCR(
-    use_doc_orientation_classify=False, # Disables document orientation classification model via this parameter
-    use_doc_unwarping=False, # Disables text image rectification model via this parameter
-    use_textline_orientation=False, # Disables text line orientation classification model via this parameter
-    lang="ru"
-)
+    car_images = list(map(lambda x: os.path.join(folder_path, x), os.listdir(folder_path)))
 
+    plate_detection_model = YOLO("tests/best1.pt")
 
-for car in cars:
-
-    img = cv.imread(car)
-
-    displaly_image(img)
-
-    detections = car_detection_model(img)[0]
-    for detection in detections.boxes.data.tolist():
-        x1, y1, x2, y2, score, class_id = detection
+    ocr = PaddleOCR(
+        use_doc_orientation_classify=False,
+        use_doc_unwarping=False,
+        use_textline_orientation=False,
+        lang="ru",
+    )
 
 
-        if class_id == 0:
-            plate_crop = img[int(y1):int(y2), int(x1): int(x2), :]
+    for car_image in car_images:
+        file_name = os.path.basename(car_image)
+        img = cv.imread(car_image)
 
-            displaly_image(plate_crop)
+        # displaly_image(img)
 
-            plate_crop_gray = cv.cvtColor(plate_crop, cv.COLOR_BGR2GRAY)
+        detections = plate_detection_model(img)[0]
+        for idx, detection in enumerate(detections.boxes.data.tolist()):
+            x1, y1, x2, y2, score, class_id = detection
 
-            displaly_image(plate_crop_gray)
+            if class_id == 0:
+                plate_crop = img[int(y1) : int(y2), int(x1) : int(x2), :]
 
-            _, plate_crop_thresh = cv.threshold(plate_crop_gray, 64, 255, cv.THRESH_BINARY_INV)
+                processed_plate_crop = preprocess(plate_crop)
 
-            displaly_image(plate_crop_thresh)
+                plate_file_path = f'tmp/{idx}_{file_name}'
 
-            detections = reader.readtext(plate_crop_gray)
+                input_img = plate_crop
 
-            for detection in detections:
-                bbox, text, score = detection
+                cv.imwrite(plate_file_path, input_img)
 
-                text = text.upper().replace(' ', '')
-
-                print(text)
-            detection = pytesseract.image_to_string(plate_crop_gray, lang='rus')
-            print(detection)
+                # displaly_image(plate_crop)
+                # cv.imwrite(f"tmp/crop_{file_name}", plate_crop)
 
 
-            result = ocr.predict("data/plate_test.png")
-            for res in result:
-                res.print()
-                res.save_to_img("output")
-                res.save_to_json("output")
 
-    break
+                result = ocr.predict(plate_file_path)
+                for res in result:
+                    # res.print()
+                    res.save_to_img("output")
+                    # res.save_to_json("output")
+
+                filename_without_extension, extension = os.path.splitext(file_name)
+
+                output_file_path = f'output/{idx}_{filename_without_extension}_ocr_res_img{extension}'
+                # print(output_file_path)
+
+                output = cv.imread(output_file_path)
+                displaly_image(output)
+
+
+
+        # break
+
+
+
+def set_image_dpi(img_array):
+    im = Image.fromarray(img_array)
+    length_x, width_y = im.size
+    factor = min(1, float(1024.0 / length_x))
+    size = int(factor * length_x), int(factor * width_y)
+    im_resized = im.resize(size, Image.Resampling.LANCZOS)
+
+
+    img_resized = np.array(im_resized)
+    return img_resized
+
+def preprocess(img):
+
+    img = set_image_dpi(img)
+
+    norm_img = np.zeros((img.shape[0], img.shape[1]))
+    img = cv.normalize(img, norm_img, 0, 255, cv.NORM_MINMAX)
+    img = cv.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 15)
+
+    return img
+
+
+if __name__ == "__main__":
+    # main("data")
+    main("custom_data")
